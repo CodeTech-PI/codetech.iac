@@ -23,176 +23,6 @@ variable "security_private_id" {
   type        = string
 }
 
-resource "aws_instance" "ec2_publica" {
-  ami             = "ami-0f9de6e2d2f067fca"
-  instance_type   = "t2.micro"
-  subnet_id       = var.subnet_publica_id
-  key_name        = aws_key_pair.codetech_key.key_name
-  security_groups = [var.security_public_id]
-
-
-  user_data = <<-EOF2
-            #!/bin/bash
-
-            sudo apt-get update -y
-            sudo apt install nginx -y
-
-            sudo bash -c 'cat > /etc/nginx/sites-available/default' 
-            
-            <<EOL
-
-            upstream backend_servers {
-                least_conn;
-                server ${aws_instance.ec2_privada.private_ip}:8080;
-                server ${aws_instance.ec2_privada_2.private_ip}:8080;
-            }
-
-            server {
-                listen 80;
-                server_name _;
-
-                 location /api/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                 location /lombardi/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                 location /agendamentos/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                 location /categorias/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }                  
-
-                  location /faturamentos/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                    location /api/events/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                    location /lista-produtos/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                    location /ordens-servicos/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                   location /produtos/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                    location /unidades/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                    location /usuarios/ {
-                    proxy_pass http://backend_servers;
-                    proxy_set_header Host $$host;
-                    proxy_set_header X-Real-IP $$remote_addr;
-                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                  location ~* /swagger-ui/ {
-                      proxy_pass http://backend_servers;
-                      proxy_set_header Host $$host;
-                      proxy_set_header X-Real-IP $$remote_addr;
-                      proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-                      proxy_set_header X-Forwarded-Proto $$scheme;
-                  }
-
-                  location / {
-                      proxy_pass http://localhost:3000;
-                      proxy_http_version 1.1;
-                      proxy_set_header Upgrade $$http_upgrade;
-                      proxy_set_header Connection 'upgrade';
-                      proxy_set_header Host $$host;
-                      proxy_cache_bypass $$http_upgrade;
-                  }
-            }
-
-            EOL
-
-            sudo systemctl restart nginx
-
-            sudo apt-get update -y
-            sudo apt-get install ca-certificates curl
-
-            sudo install -m 0755 -d /etc/apt/keyrings -y
-            sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-            sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-            echo \
-              "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-              $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-            sudo apt-get update -y
-            sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-
-            sudo systemctl start docker
-            sudo systemctl enable docker
-
-            sudo groupadd docker
-            sudo usermod -aG docker $USER
-            newgrp docker
-
-            BACKEND_IP = $(aws ec2 describe-instances --instance-ids "$${aws_instance.ec2_privada.id}" --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text)
-            sudo docker run -d -p 80:80 -e REACT_APP_API_URL="http://$${BACKEND_IP}:8080" gabrielaseverino/codetech-front:v1
-
-        EOF2
-
-  tags = {
-    Name = "codetech-publica"
-  }
-}
-
 resource "aws_instance" "ec2_bd" {
   ami                         = "ami-0f9de6e2d2f067fca"
   instance_type               = "t2.micro"
@@ -378,8 +208,7 @@ resource "aws_instance" "ec2_privada" {
             -e SPRING_DATASOURCE_PASSWORD="lombardi123" \
             gabrielaseverino/codetech.api:v1    
 
-            #sudo docker run -p 8080:8080 -d gabrielaseverino/codetech.api:v1
-        EOF
+          EOF
 
   tags = {
     Name = "codetech-be"
@@ -434,6 +263,181 @@ resource "aws_instance" "ec2_privada_2" {
   }
 }
 
+resource "aws_instance" "ec2_publica" {
+  ami             = "ami-0f9de6e2d2f067fca"
+  instance_type   = "t2.micro"
+  subnet_id       = var.subnet_publica_id
+  key_name        = aws_key_pair.codetech_key.key_name
+  security_groups = [var.security_public_id]
+
+
+  user_data = <<-EOF2
+            #!/bin/bash
+
+            sudo apt-get update -y
+            sudo apt install nginx -y
+
+            //config do nginx para proxy reverso para o container do frontzin
+            sudo bash -c 'cat > /etc/nginx/sites-available/default' 
+            
+            <<EOL
+
+            upstream backend_servers {
+                least_conn;
+                server ${aws_instance.ec2_privada.private_ip}:8080;
+                server ${aws_instance.ec2_privada_2.private_ip}:8080;
+            }
+
+            server {
+                listen 80;
+                server_name _;
+
+                 location /api/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                 location /lombardi/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                 location /agendamentos/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                 location /categorias/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }                  
+
+                  location /faturamentos/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                    location /api/events/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                    location /lista-produtos/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                    location /ordens-servicos/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                   location /produtos/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                    location /unidades/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                    location /usuarios/ {
+                    proxy_pass http://backend_servers;
+                    proxy_set_header Host $$host;
+                    proxy_set_header X-Real-IP $$remote_addr;
+                    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                  location ~* /swagger-ui/ {
+                      proxy_pass http://backend_servers;
+                      proxy_set_header Host $$host;
+                      proxy_set_header X-Real-IP $$remote_addr;
+                      proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto $$scheme;
+                  }
+
+                  location / {
+                      proxy_pass http://localhost:3000;
+                      proxy_http_version 1.1;
+                      proxy_set_header Upgrade $$http_upgrade;
+                      proxy_set_header Connection 'upgrade';
+                      proxy_set_header Host $$host;
+                      proxy_cache_bypass $$http_upgrade;
+                  }
+            }
+
+            EOL
+
+            sudo systemctl restart nginx
+
+            sudo apt-get update -y
+            sudo apt-get install ca-certificates curl
+
+            sudo install -m 0755 -d /etc/apt/keyrings -y
+            sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+            sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+            echo \
+              "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+              $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+            sudo apt-get update -y
+            sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+
+            sudo systemctl start docker
+            sudo systemctl enable docker
+
+            sudo groupadd docker
+            sudo usermod -aG docker $USER
+            newgrp docker
+
+            BACKEND_IP = $(aws ec2 describe-instances --instance-ids "$${aws_instance.ec2_privada.id}" --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text)
+
+            sudo docker run -d -p 3000:3000 \\
+            -e REACT_APP_API_URL="http://$${BACKEND_IP}:8080" \\
+            --name codetech-front \\
+            gabrielaseverino/codetech-front:v1
+
+          EOF2
+
+  tags = {
+    Name = "codetech-publica"
+  }
+}
+
 resource "tls_private_key" "ssh_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -463,4 +467,9 @@ output "private_instance_id" {
 output "private_instance_id_2" {
   value       = aws_instance.ec2_privada_2.id
   description = "ID da EC2 be-2"
+}
+
+output "public_instance_ip" {
+  value = aws_instance.ec2_publica.public_ip
+  description = "IP Publico da instancia EC2 Publica"
 }

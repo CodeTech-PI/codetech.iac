@@ -44,20 +44,9 @@ resource "aws_eip_association" "assoc_ip_publica" {
   allocation_id = aws_eip.ip_instancia-publica.id
 }
 
-# resource "aws_eip" "ip_instancia-privada" {
-#   vpc = true
-#   tags = {
-#     Name = "codetech-ip-privado"
-#   }
-# }
-
-# resource "aws_eip_association" "assoc_ip_privada" {
-#   instance_id   = module.instances.private_instance_id
-#   allocation_id = aws_eip.ip_instancia-privada.id
-# }
-
-# scp -i keys/codetech_key.pem keys/codetech_key.pem ubuntu@52.203.203.23:/home/ubuntu/.ssh/codetech_key.pem	
-# ssh -i "keys/codetech_key.pem" ubuntu@ec2-52-203-203-23.compute-1.amazonaws.com
+# scp -i keys/codetech_key.pem keys/codetech_key.pem ubuntu@{IP_BE}:/home/ubuntu/.ssh/codetech_key.pem
+# scp -i keys/codetech_key.pem keys/codetech_key.pem ubuntu@{IP_BE2}:/home/ubuntu/.ssh/codetech_key.pem	
+# ssh -i "keys/codetech_key.pem" ubuntu@{IP_BE}
 # http://3.91.241.173/api/swagger-ui/index.html
 # docker run -p 8080:8080 -d gabrielaseverino/codetech.api:v1
 # docker logs $(docker ps -q --filter gabrielaseverino/codetech.api)
