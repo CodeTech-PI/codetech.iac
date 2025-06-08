@@ -31,26 +31,26 @@ resource "aws_instance" "ec2_privada" {
   security_groups = [var.security_private_id]
 
   user_data = <<-EOF
+    #!/bin/bash -xe
 
-    #!/bin/bash
+    echo "Iniciando user-data" > /tmp/user_data_test.log
 
-    sudo apt-get update -y
-    sudo apt install -y ca-certificates curl gnupg lsb-release
+    sudo apt-get update -y >> /tmp/user_data_test.log 2>&1
+
+    sudo apt-get install -y ca-certificates curl gnupg lsb-release >> /tmp/user_data_test.log 2>&1
     sudo mkdir -p /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    sudo apt-get update -y
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update -y >> /tmp/user_data_test.log 2>&1
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin >> /tmp/user_data_test.log 2>&1
 
-    sudo systemctl start docker
-    sudo systemctl enable docker
-    sudo systemctl start docker-compose
+    sudo systemctl start docker >> /tmp/user_data_test.log 2>&1
+    sudo systemctl enable docker >> /tmp/user_data_test.log 2>&1
 
     DOCKER_COMPOSE_CONTENT = file("./docker-compose.yml")
-
-    echo "$DOCKER_COMPOSE_CONTENT" > /home/ubuntu/docker-compose.yml 2>> /tmp/user_data_test.log
+    echo "$DOCKER_COMPOSE_CONTENT" | sudo tee /home/ubuntu/docker-compose.yml
 
     sudo docker compose -f /home/ubuntu/docker-compose.yml up -d
 
@@ -225,7 +225,7 @@ resource "aws_instance" "ec2_publica" {
 
     sudo systemctl restart nginx >> /tmp/user_data_test.log 2>&1
 
-    sudo docker run -p 3000:80 -d gabrielaseverino/codetech-front:v14 >> /tmp/user_data_test.log 2>&1
+    sudo docker run --name frontend -p 3000:80 -d gabrielaseverino/codetech.front:latest >> /tmp/user_data_test.log 2>&1
   EOF2
 
   tags = {
