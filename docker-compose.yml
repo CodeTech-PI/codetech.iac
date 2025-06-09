@@ -9,3 +9,4 @@ services:
     image: gabrielaseverino/codetech.api:v9
     ports:
       - "8081:8080"
+      
