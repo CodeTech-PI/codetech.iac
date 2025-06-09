@@ -1,11 +1,11 @@
 version: '3.8'
 services:
   backend-1:
-    image: gabrielaseverino/codetech.api:v7
+    image: gabrielaseverino/codetech.api:v9
     ports:
       - "8080:8080"
 
   backend-2:
-    image: gabrielaseverino/codetech.api:v7
+    image: gabrielaseverino/codetech.api:v9
     ports:
       - "8081:8080"

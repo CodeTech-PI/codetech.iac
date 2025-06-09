@@ -49,7 +49,7 @@ resource "aws_instance" "ec2_privada" {
     sudo systemctl start docker >> /tmp/user_data_test.log 2>&1
     sudo systemctl enable docker >> /tmp/user_data_test.log 2>&1
 
-    DOCKER_COMPOSE_CONTENT = file("./docker-compose.yml")
+    DOCKER_COMPOSE_CONTENT = file("../docker-compose.yml")
     echo "$DOCKER_COMPOSE_CONTENT" | sudo tee /home/ubuntu/docker-compose.yml
 
     sudo docker compose -f /home/ubuntu/docker-compose.yml up -d
@@ -225,7 +225,7 @@ resource "aws_instance" "ec2_publica" {
 
     sudo systemctl restart nginx >> /tmp/user_data_test.log 2>&1
 
-    sudo docker run --name frontend -p 3000:80 -d gabrielaseverino/codetech.front:latest >> /tmp/user_data_test.log 2>&1
+    sudo docker run --name frontend -p 3000:80 -d gabrielaseverino/codetech-front:latest >> /tmp/user_data_test.log 2>&1
   EOF2
 
   tags = {
@@ -258,7 +258,6 @@ output "private_instance_id" {
   value       = aws_instance.ec2_privada.id
   description = "ID da EC2 be"
 }
-
 
 output "public_instance_ip" {
   value       = aws_instance.ec2_publica.public_ip
